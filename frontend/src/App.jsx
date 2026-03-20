@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import Login from './pages/Login';
@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       {/* Global dark UI handling. You can swap 'dark' mode class in index.html to toggle, but we will force it globally */}
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-200">
         <Toaster position="top-right" />
@@ -56,7 +56,7 @@ function App() {
           </p>
         </div>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
