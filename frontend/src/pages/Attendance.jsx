@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, XCircle, Loader2, Save, CalendarDays, RefreshCw } from 'lucide-react';
+import { Calendar, CalendarCheck, CheckCircle, XCircle, Loader2, Save, CalendarDays, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
