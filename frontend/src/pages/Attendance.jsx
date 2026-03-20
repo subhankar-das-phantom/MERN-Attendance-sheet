@@ -1,58 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Calendar, CalendarCheck, CheckCircle, XCircle, Loader2, Save, CalendarDays, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useAPI } from '../services/swrFetcher';
 
 const Attendance = () => {
-  const [students, setStudents] = useState([]);
   const [records, setRecords] = useState({}); // { studentId: 'present' | 'absent' }
   const [originalRecords, setOriginalRecords] = useState({}); // Baseline for change detection
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
-
   const [isEditMode, setIsEditMode] = useState(false);
 
-  useEffect(() => {
-    fetchDataForDate();
-  }, [selectedDate]);
+  // SWR: Cache student list
+  const { data: students = [], isLoading: studentsLoading } = useAPI('/students');
+  
+  // SWR: Cache attendance by date
+  const { data: attData, isLoading: attLoading, mutate: mutateAtt } = useAPI(
+    `/attendance?date=${selectedDate}`,
+    { revalidateOnFocus: false }
+  );
+  
+  const loadingInitial = studentsLoading || attLoading;
 
-  const fetchDataForDate = async () => {
-    try {
-      setLoadingInitial(true);
-      const { data: studentData } = await api.get('/students');
-      
-      const { data: attData } = await api.get(`/attendance?date=${selectedDate}`);
-      
-      const recordsMap = {};
-      if (attData && attData.length > 0) {
-        setIsEditMode(true);
-        attData[0].records.forEach(r => {
-          const sId = typeof r.studentId === 'object' ? r.studentId._id : r.studentId;
-          recordsMap[sId] = r.status;
-        });
-        
-        // Ensure new students not in history still get a default state
-        studentData.forEach(s => {
-          if (!recordsMap[s._id]) recordsMap[s._id] = 'absent';
-        });
-      } else {
-        setIsEditMode(false);
-        studentData.forEach(s => {
-          recordsMap[s._id] = 'absent';
-        });
-      }
-      
-      setStudents(studentData);
-      setRecords(recordsMap);
-      setOriginalRecords(recordsMap); // Save baseline
-    } catch (error) {
-      toast.error('Failed to load students');
-    } finally {
-      setLoadingInitial(false);
+  // Derive records from SWR data whenever students or attData change
+  useEffect(() => {
+    if (studentsLoading || attLoading) return;
+    
+    const recordsMap = {};
+    if (attData && attData.length > 0) {
+      setIsEditMode(true);
+      attData[0].records.forEach(r => {
+        const sId = typeof r.studentId === 'object' ? r.studentId._id : r.studentId;
+        recordsMap[sId] = r.status;
+      });
+      students.forEach(s => {
+        if (!recordsMap[s._id]) recordsMap[s._id] = 'absent';
+      });
+    } else {
+      setIsEditMode(false);
+      students.forEach(s => {
+        recordsMap[s._id] = 'absent';
+      });
     }
-  };
+    
+    setRecords(recordsMap);
+    setOriginalRecords(recordsMap);
+  }, [students, attData, studentsLoading, attLoading]);
 
   const handleToggle = (studentId) => {
     setRecords(prev => ({
@@ -94,8 +88,9 @@ const Attendance = () => {
         toast.success('Attendance saved successfully!');
       }
       
-      setIsEditMode(true); // Promotes to edit mode after first creation
-      setOriginalRecords({...records}); // Reset baseline
+      setIsEditMode(true);
+      setOriginalRecords({...records});
+      mutateAtt(); // Revalidate SWR cache for this date
     } catch (error) {
       if (error.response?.status === 400 && error.response?.data?.message.includes('exists')) {
         // Trigger overwrite confirmation

@@ -1,26 +1,12 @@
-import { useState, useEffect } from 'react';
 import { Download, AlertTriangle, Users, CalendarDays, TrendingUp, Loader2 } from 'lucide-react';
-import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useAPI } from '../services/swrFetcher';
 
 const Dashboard = () => {
-  const [data, setData] = useState({ totalClasses: 0, studentStats: [], defaulters: [] });
-  const [loading, setLoading] = useState(true);
+  const { data: rawData, error, isLoading: loading } = useAPI('/summary');
+  const data = rawData || { totalClasses: 0, studentStats: [], defaulters: [] };
 
-  useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  const fetchSummary = async () => {
-    try {
-      const { data: resData } = await api.get('/summary');
-      setData(resData);
-    } catch (error) {
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (error) toast.error('Failed to load dashboard data');
 
   const exportCSV = () => {
     if (data.studentStats.length === 0) return toast.error('No data to export');

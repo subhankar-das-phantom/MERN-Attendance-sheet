@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Users, UserPlus, Edit2, Trash2, X, Check, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useAPI } from '../services/swrFetcher';
 
 const Students = () => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: students = [], error, isLoading: loading, mutate } = useAPI('/students');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -14,21 +14,7 @@ const Students = () => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', rollNumber: '' });
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/students');
-      setStudents(data);
-    } catch (error) {
-      toast.error('Failed to fetch students');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (error) toast.error('Failed to fetch students');
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +22,7 @@ const Students = () => {
     setIsSubmitting(true);
     try {
       const { data } = await api.post('/students', newStudent);
-      setStudents([...students, data]);
+      mutate([...students, data], false);
       setNewStudent({ name: '', rollNumber: '' });
       setShowAddForm(false);
       toast.success('Student added successfully');
@@ -53,7 +39,7 @@ const Students = () => {
     setIsSubmitting(true);
     try {
       const { data } = await api.put(`/students/${id}`, editForm);
-      setStudents(students.map(s => s._id === id ? data : s));
+      mutate(students.map(s => s._id === id ? data : s), false);
       setEditingId(null);
       toast.success('Student updated');
     } catch (error) {
@@ -67,7 +53,7 @@ const Students = () => {
     if (!window.confirm('Remove this student? This is a safe action (soft delete).')) return;
     try {
       await api.delete(`/students/${id}`);
-      setStudents(students.filter(s => s._id !== id));
+      mutate(students.filter(s => s._id !== id), false);
       toast.success('Student deactivated');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error deleting student');
