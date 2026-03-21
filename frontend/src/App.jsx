@@ -24,7 +24,7 @@ function App() {
         <Toaster position="top-right" />
         
         <Routes>
-          <Route path="/" element={<Navigate to="/attendance" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
           
           <Route path="/attendance" element={
