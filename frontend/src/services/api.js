@@ -71,7 +71,7 @@ const demoApi = {
           student: s,
           totalPresent: present,
           totalAbsent: absent,
-          trend: trend.slice(-5),
+          trend: trend,
           percentage: perc
         };
       });
@@ -80,6 +80,31 @@ const demoApi = {
       const defaulters = stats.filter(s => s.percentage < 75);
 
       return { data: { totalClasses, studentStats: stats, defaulters } };
+    }
+
+    // Student detail attendance history
+    const studentDetailMatch = url.match(/^\/students\/(.+)\/attendance$/);
+    if (studentDetailMatch) {
+      const id = studentDetailMatch[1];
+      const student = mockStudents.find(s => s._id === id);
+      if (!student) return Promise.reject({ response: { status: 404, data: { message: 'Student not found' } } });
+
+      const totalClasses = Object.keys(mockAttendance).length;
+      let totalPresent = 0;
+      let totalAbsent = 0;
+      const history = [];
+
+      Object.keys(mockAttendance).sort().forEach(date => {
+        const rec = mockAttendance[date].find(r => r.studentId === id);
+        if (rec) {
+          if (rec.status === 'present') totalPresent++;
+          else totalAbsent++;
+          history.push({ date, status: rec.status });
+        }
+      });
+
+      const percentage = totalClasses ? Math.round((totalPresent / totalClasses) * 100) : 0;
+      return { data: { student, totalClasses, totalPresent, totalAbsent, percentage, history } };
     }
   },
   post: async (url, payload) => {
