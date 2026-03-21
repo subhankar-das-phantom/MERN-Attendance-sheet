@@ -20,6 +20,11 @@ app.use(express.json());
 // Connect DB
 connectDB();
 
+// Health Check Route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Server is healthy' });
+});
+
 // Routes
 app.use('/api', authRoutes);
 app.use('/api/students', studentRoutes);
