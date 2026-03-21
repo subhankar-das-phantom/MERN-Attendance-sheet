@@ -18,7 +18,7 @@ const Login = () => {
       if (data.success) {
         localStorage.setItem('user', JSON.stringify(data.user));
         toast.success("Welcome back!");
-        navigate('/attendance');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
