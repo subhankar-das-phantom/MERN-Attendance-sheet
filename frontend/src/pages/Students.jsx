@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Users, UserPlus, Edit2, Trash2, X, Check, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, UserPlus, Edit2, Trash2, X, Check, Loader2, Eye } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAPI } from '../services/swrFetcher';
@@ -176,7 +177,7 @@ const Students = () => {
                       {initials}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-gray-900 dark:text-white text-base truncate pr-4">{student.name}</span>
+                      <Link to={`/student/${student._id}`} className="font-bold text-gray-900 dark:text-white text-base truncate pr-4 hover:underline hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{student.name}</Link>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 dark:text-gray-500">Roll</span>
                         <span className="text-xs font-mono font-semibold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 px-2 py-0.5 rounded-md border border-primary-100 dark:border-primary-800/50">
@@ -187,6 +188,13 @@ const Students = () => {
                   </div>
                   
                   <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto justify-end border-t sm:border-t-0 border-gray-100 dark:border-gray-700 pt-3 sm:pt-0 mt-3 sm:mt-0">
+                    <Link 
+                      to={`/student/${student._id}`}
+                      className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/40 hover:shadow-sm rounded-xl transition-all duration-200"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Link>
                     <button 
                       onClick={() => { setEditingId(student._id); setEditForm({ name: student.name, rollNumber: student.rollNumber }); }}
                       className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/40 hover:shadow-sm rounded-xl transition-all duration-200"
