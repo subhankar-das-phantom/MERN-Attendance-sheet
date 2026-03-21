@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Attendance from './pages/Attendance';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
+import StudentDetail from './pages/StudentDetail';
 import Navbar from './components/Navbar';
 
 // Very simple wrapper to restrict unauthenticated access
@@ -43,6 +44,12 @@ function App() {
             <ProtectedRoute>
               <Navbar />
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/student/:id" element={
+            <ProtectedRoute>
+              <Navbar />
+              <StudentDetail />
             </ProtectedRoute>
           } />
           
