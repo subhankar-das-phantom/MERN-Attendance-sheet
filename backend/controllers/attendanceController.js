@@ -109,7 +109,7 @@ exports.getSummary = async (req, res) => {
         totalPresent: 0,
         totalAbsent: 0,
         percentage: 0,
-        trend: [] // will hold 'P' or 'A' for last 5 classes
+        trend: [] // will hold 'P' or 'A' for all classes
       };
     });
 
@@ -147,10 +147,7 @@ exports.getSummary = async (req, res) => {
         ? Math.round((stat.totalPresent / totalClasses) * 100) 
         : 0;
       
-      // Keep only last 5 trend items
-      if (stat.trend.length > 5) {
-        stat.trend = stat.trend.slice(stat.trend.length - 5);
-      }
+      // Full history is retained
       return stat;
     });
 
@@ -168,5 +165,60 @@ exports.getSummary = async (req, res) => {
   } catch (error) {
     console.error('Error computing summary:', error);
     res.status(500).json({ message: 'Server error computing summary' });
+  }
+};
+
+// @desc    Get attendance history for a specific student
+// @route   GET /api/students/:id/attendance
+// @access  Public
+exports.getStudentAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify student exists
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Get total classes
+    const totalClasses = await Attendance.countDocuments();
+
+    // Find all attendance records containing this student, sorted by date
+    const allAttendance = await Attendance.find({
+      'records.studentId': id
+    }).sort({ date: 1 });
+
+    let totalPresent = 0;
+    let totalAbsent = 0;
+
+    const history = allAttendance.map(att => {
+      const record = att.records.find(r => r.studentId.toString() === id);
+      const status = record ? record.status : 'absent';
+      if (status === 'present') totalPresent++;
+      else totalAbsent++;
+
+      return {
+        date: att.date,
+        status
+      };
+    });
+
+    const percentage = totalClasses > 0 
+      ? Math.round((totalPresent / totalClasses) * 100) 
+      : 0;
+
+    res.status(200).json({
+      student: { _id: student._id, name: student.name, rollNumber: student.rollNumber },
+      totalClasses,
+      totalPresent,
+      totalAbsent,
+      percentage,
+      history
+    });
+
+  } catch (error) {
+    console.error('Error fetching student attendance:', error);
+    res.status(500).json({ message: 'Server error fetching student attendance' });
   }
 };
