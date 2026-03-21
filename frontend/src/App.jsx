@@ -46,7 +46,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="*" element={<Navigate to="/attendance" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
 
         {/* Minimal watermark */}
