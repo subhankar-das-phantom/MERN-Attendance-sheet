@@ -1,4 +1,5 @@
 import { Download, AlertTriangle, Users, CalendarDays, TrendingUp, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAPI } from '../services/swrFetcher';
 
@@ -113,7 +114,7 @@ const Dashboard = () => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
           <h3 className="font-bold text-gray-900 dark:text-gray-100">Comprehensive Report</h3>
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5"/> Trend = Last 5 Classes</span>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5"/> Full Attendance Trend</span>
         </div>
         
         <div className="overflow-x-auto">
@@ -133,10 +134,10 @@ const Dashboard = () => {
                 return (
                   <tr key={stat.student._id} className={`hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors ${isDefaulter ? 'bg-red-50/20 dark:bg-red-900/10' : ''}`}>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className={`font-semibold ${isDefaulter ? 'text-red-700 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>{stat.student.name}</span>
+                      <Link to={`/student/${stat.student._id}`} className="flex flex-col group/name">
+                        <span className={`font-semibold group-hover/name:underline ${isDefaulter ? 'text-red-700 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>{stat.student.name}</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">{stat.student.rollNumber}</span>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold text-sm">
@@ -148,14 +149,22 @@ const Dashboard = () => {
                          {stat.totalAbsent}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex justify-center gap-1.5">
-                        {stat.trend.map((tr, idx) => (
-                           <span key={idx} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${tr === 'P' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
-                             {tr}
-                           </span>
-                        ))}
-                      </div>
+                    <td className="px-6 py-4">
+                      {stat.trend.length > 0 ? (
+                        <div className="flex flex-col items-center gap-1.5 min-w-[100px]">
+                          <div className="w-full h-2.5 bg-red-200 dark:bg-red-900/40 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary-500 dark:bg-primary-400 rounded-full transition-all duration-500"
+                              style={{ width: `${stat.percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 tracking-wide">
+                            {stat.totalPresent}P / {stat.totalAbsent}A
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 italic">No data</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-extrabold ${
