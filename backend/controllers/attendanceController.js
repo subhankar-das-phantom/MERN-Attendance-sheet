@@ -125,9 +125,9 @@ exports.getSummary = async (req, res) => {
     const allAttendance = await Attendance.find({}).sort({ date: 1 });
     
     allAttendance.forEach(att => {
-      att.records.forEach(record => {
-        const sId = record.studentId.toString();
-        if (statsMap[sId]) {
+      Object.keys(statsMap).forEach(sId => {
+        const record = att.records.find(r => r.studentId.toString() === sId);
+        if (record) {
           if (record.status === 'present') {
              statsMap[sId].totalPresent += 1;
              statsMap[sId].trend.push('P');
@@ -135,15 +135,18 @@ exports.getSummary = async (req, res) => {
              statsMap[sId].totalAbsent += 1;
              statsMap[sId].trend.push('A');
           }
+        } else {
+          // Implicit absent for missing historical records (enrolled late)
+          statsMap[sId].totalAbsent += 1;
+          statsMap[sId].trend.push('A');
         }
       });
     });
 
     // 4. Calculate percentage, format trend to last 5, sort and find defaulters
     let studentListArray = Object.values(statsMap).map(stat => {
-      // Calculate percentage
-      const totalAttended = stat.totalPresent + stat.totalAbsent;
-      stat.percentage = totalClasses > 0 && totalAttended > 0 
+      // Calculate total percentage out of absolute global classes
+      stat.percentage = totalClasses > 0 
         ? Math.round((stat.totalPresent / totalClasses) * 100) 
         : 0;
       
@@ -196,7 +199,7 @@ exports.getStudentAttendance = async (req, res) => {
       const record = att.records.find(r => r.studentId.toString() === id);
       const status = record ? record.status : 'absent';
       if (status === 'present') totalPresent++;
-      else totalAbsent++;
+      else totalAbsent++; // Missing past records default to absent
 
       return {
         date: att.date,
