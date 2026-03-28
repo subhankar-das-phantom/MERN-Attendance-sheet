@@ -62,8 +62,13 @@ const demoApi = {
         
         Object.keys(mockAttendance).sort().forEach(date => {
           const rec = mockAttendance[date].find(r => r.studentId === s._id);
-          if (rec?.status === 'present') { present++; trend.push('P'); }
-          if (rec?.status === 'absent') { absent++; trend.push('A'); }
+          if (rec?.status === 'present') { 
+            present++; 
+            trend.push('P'); 
+          } else { 
+            absent++; 
+            trend.push('A'); 
+          }
         });
         
         const perc = totalClasses ? Math.round((present / totalClasses) * 100) : 0;
@@ -96,11 +101,10 @@ const demoApi = {
 
       Object.keys(mockAttendance).sort().forEach(date => {
         const rec = mockAttendance[date].find(r => r.studentId === id);
-        if (rec) {
-          if (rec.status === 'present') totalPresent++;
-          else totalAbsent++;
-          history.push({ date, status: rec.status });
-        }
+        const status = rec ? rec.status : 'absent';
+        if (status === 'present') totalPresent++;
+        else totalAbsent++;
+        history.push({ date, status });
       });
 
       const percentage = totalClasses ? Math.round((totalPresent / totalClasses) * 100) : 0;
